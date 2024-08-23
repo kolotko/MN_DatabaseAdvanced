@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  postgres-master:
+    image: postgres:15
+    container_name: postgres-master
+    environment:
+      POSTGRES_USER: masteruser
+      POSTGRES_PASSWORD: masterpassword
+      POSTGRES_DB: exampledb
+    volumes:
+      - master_data:/var/lib/postgresql/data
+      - ./master/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./master/pg_hba.conf:/etc/postgresql/pg_hba.conf
+    ports:
+      - "9094:5432"
+    networks:
+      - postgres_network
+    command: ["-c", "config_file=/etc/postgresql/postgresql.conf"]
+
+  postgres-replica:
+    image: postgres:15
+    container_name: postgres-replica
+    environment:
+      POSTGRES_USER: replicauser
+      POSTGRES_PASSWORD: replicapassword
+      POSTGRES_DB: exampledb
+      POSTGRES_MASTER_HOST: postgres-master
+    volumes:
+      - replica_data:/var/lib/postgresql/data
+      - ./replica/postgresql.conf:/etc/postgresql/postgresql.conf
+    ports:
+      - "9095:5432"
+    networks:
+      - postgres_network
+    depends_on:
+      - postgres-master
+    command: |
+      bash -c "
+        until pg_basebackup -h postgres-master -D /var/lib/postgresql/data -U replicauser -v -P --wal-method=stream; do
+          echo 'Waiting for master to be ready...'
+          sleep 2
+        done &&
+        postgres -c config_file=/etc/postgresql/postgresql.conf
+      "
+
+volumes:
+  master_data:
+  replica_data:
+
+networks:
+  postgres_network:
+    driver: bridge
