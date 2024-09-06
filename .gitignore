@@ -1,4 +1,5 @@
 .idea/
 bin/
+obj/
 replica-data/
 master-data/
