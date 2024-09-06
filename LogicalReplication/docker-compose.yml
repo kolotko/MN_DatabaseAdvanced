@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  master:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: master_user
+      POSTGRES_PASSWORD: master_password
+      POSTGRES_DB: master_db
+    ports:
+      - "9097:5432"
+    volumes:
+      - master_data:/var/lib/postgresql/data
+      - ./master/pg_hba.conf:/etc/postgresql/pg_hba.conf
+    networks:
+      - pgnet
+    command: postgres -c wal_level=logical -c max_replication_slots=5 -c max_wal_senders=5
+
+  replica:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: replica_user
+      POSTGRES_PASSWORD: replica_password
+      POSTGRES_DB: replica_db
+    ports:
+      - "9098:5432"
+    volumes:
+      - replica_data:/var/lib/postgresql/data
+    networks:
+      - pgnet
+    depends_on:
+      - master
+    command: postgres -c wal_level=logical -c max_replication_slots=5 -c max_wal_senders=5
+
+volumes:
+  master_data:
+  replica_data:
+
+networks:
+  pgnet:
