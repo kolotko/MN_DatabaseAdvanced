@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: postgres-pgaudit
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    volumes:
+      - ./data:/var/lib/postgresql/
+    ports:
+      - "9097:5432"
+    restart: always
+    command: -c 'config_file=/etc/postgresql/postgresql.conf'
+
+volumes:
+  data:
