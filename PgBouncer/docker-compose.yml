@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: hbZkzny5xrvVH
+      POSTGRES_DB: test
+    ports:
+      - "9090:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+    networks:
+      - pg-network
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: pgbouncer
+    depends_on:
+      - postgres
+    environment:
+      - DB_USER=postgres
+      - DB_PASSWORD=hbZkzny5xrvVH
+      - DB_HOST=db
+      - DB_NAME=test
+      #- AUTH_TYPE=scram-sha-256 # remove/comment this line if using postgres:13 and lower
+      - AUTH_TYPE=plain
+      - POOL_MODE=transaction
+      - ADMIN_USERS=postgres,dbuser
+      # - DATABASE_URL=postgresql://your_username:your_password@postgres:5432/your_database
+      # - AUTH_USER=your_username
+      # - AUTH_PASSWORD=your_password
+    ports:
+      - "9091:6432"
+    networks:
+      - pg-network
+    volumes:
+      - ./pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini
+      - ./userlist.txt:/etc/pgbouncer/userlist.txt
+
+networks:
+  pg-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
