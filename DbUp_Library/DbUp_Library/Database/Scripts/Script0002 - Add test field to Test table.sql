@@ -1,0 +1,1 @@
+﻿ALTER TABLE Test ADD TestField Text NOT NULL;

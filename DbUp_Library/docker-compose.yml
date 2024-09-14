@@ -1,0 +1,10 @@
+﻿services:
+  postgres-master:
+    image: postgres:15
+    container_name: postgres-master
+    environment:
+      POSTGRES_USER: example_user
+      POSTGRES_PASSWORD: example_password
+      POSTGRES_DB: example_db
+    ports:
+      - "9094:5432"
